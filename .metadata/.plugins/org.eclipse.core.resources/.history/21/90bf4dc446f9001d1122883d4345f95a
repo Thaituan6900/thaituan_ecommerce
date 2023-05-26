@@ -1,0 +1,5 @@
+package com.thaituan.admin.user;
+
+public class UserRestController {
+
+}
