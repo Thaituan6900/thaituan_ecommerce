@@ -1,5 +1,0 @@
-package com.thaituan.admin.security;
-
-public class WebSecurityConfig {
-
-}

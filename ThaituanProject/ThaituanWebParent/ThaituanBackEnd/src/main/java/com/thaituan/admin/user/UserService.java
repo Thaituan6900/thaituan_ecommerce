@@ -1,6 +1,7 @@
 package com.thaituan.admin.user;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +31,19 @@ public class UserService {
 	}
 
 	public void save(User user) {
-		encodePassword(user);
+		boolean isUpdatingUser = (user.getId() != null);
+
+		if (isUpdatingUser) {
+			User existingUser = userRepo.findById(user.getId()).get();
+
+			if (user.getPassword().isEmpty()) {
+				user.setPassword(existingUser.getPassword());
+			} else {
+				encodePassword(user);
+			}
+		} else {
+			encodePassword(user);
+		}
 		userRepo.save(user);
 	}
 
@@ -39,8 +52,29 @@ public class UserService {
 		user.setPassword(encodedPassword);
 	}
 
-	public boolean isEmailUnique(String email) {
+	public boolean isEmailUnique(Integer id, String email) {
 		User userByEMail = userRepo.getUserByEmail(email);
-		return userByEMail == null;
+
+		if (userByEMail == null)
+			return true;
+		boolean isCreatingNew = (id == null);
+		if (isCreatingNew) {
+			if (userByEMail != null)
+				return false;
+		} else {
+			if (userByEMail.getId() != id) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public User get(Integer id) throws UserNotFoundException {
+		try {
+			return userRepo.findById(id).get();
+		} catch (NoSuchElementException e) {
+			throw new UserNotFoundException("Could not find any user with ID " + id);
+		}
+
 	}
 }
